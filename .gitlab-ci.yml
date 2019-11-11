@@ -34,7 +34,7 @@ run_container:
     - sudo podman pull $IMAGE_NAME:latest
 
   script:
-    - sudo podman run -d --name $CONTAINER_NAME --pod $POD_NAME $IMAGE_NAME:latest
+    - sudo podman run -d -v postgres-run:/var/run/postgresql --name=$CONTAINER_NAME --pod=$POD_NAME $IMAGE_NAME:latest
 
   except:
     changes:
