@@ -9,10 +9,10 @@ build_prod_image:
     - sudo podman login -u $REGISTRY_USER -p $REGISTRY_PASSWORD $REGISTRY_URL
 
   script:
-    - sudo echo "Test build"
+    - echo "Test build"
 
   after_script:
-    - sudo echo "Test after"
+    - echo "Test after"
 
   except:
     changes:
