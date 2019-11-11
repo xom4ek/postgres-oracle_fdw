@@ -1,0 +1,44 @@
+stages:
+  - build
+  - deploy
+
+build_prod_image:
+  stage: build
+
+  before_script:
+    - sudo podman login -u $REGISTRY_USER -p $REGISTRY_PASSWORD $REGISTRY_URL
+
+  script:
+    - sudo podman build -t registry.gitlab.nglm.rt.ru/containers/grafana:latest --build-arg CONFIG=$PROD_CONFIG .
+    - sudo podman push registry.gitlab.nglm.rt.ru/containers/grafana:latest
+
+  after_script:
+    - sudo podman rmi $IMAGE_NAME:latest || echo "Image doesn't exist"
+
+  except:
+    changes:
+      - .gitlab-ci.yml
+
+  only:
+    - master
+
+
+run_container:
+  stage: deploy
+
+  before_script:
+    - sudo podman login -u $REGISTRY_USER -p $REGISTRY_PASSWORD $REGISTRY_URL
+    - sudo podman stop $CONTAINER_NAME || echo "Container doesn't started"
+    - sudo podman rm $CONTAINER_NAME || echo "Coniner doesn't exist"
+    - sudo podman rmi $IMAGE_NAME:latest || echo "Image doesn't exist"
+    - sudo podman pull $IMAGE_NAME:latest
+
+  script:
+    - sudo podman run -d --name $CONTAINER_NAME --pod $POD_NAME $IMAGE_NAME:latest
+
+  except:
+    changes:
+      - .gitlab-ci.yml
+
+  only:
+    - master
