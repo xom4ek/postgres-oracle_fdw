@@ -9,11 +9,10 @@ build_prod_image:
     - sudo podman login -u $REGISTRY_USER -p $REGISTRY_PASSWORD $REGISTRY_URL
 
   script:
-    - sudo podman build -t registry.gitlab.nglm.rt.ru/containers/grafana:latest --build-arg CONFIG=$PROD_CONFIG .
-    - sudo podman push registry.gitlab.nglm.rt.ru/containers/grafana:latest
+    - sudo echo "Test build"
 
   after_script:
-    - sudo podman rmi $IMAGE_NAME:latest || echo "Image doesn't exist"
+    - sudo echo "Test after"
 
   except:
     changes:
