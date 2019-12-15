@@ -78,19 +78,3 @@ deploy_spvprod_container:
 
   only:
     - master
-
-test:
-  stage: test
-  when: manual
-  before_script:
-    - source source.env
-
-  script:
-    - >
-      date 
-      -r 2
-    - date
-    
-
-  only:
-    - master
