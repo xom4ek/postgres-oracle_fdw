@@ -1,5 +1,10 @@
 Docker container with oracle_fdw plugin and correct setting NLS_LANG for Russian character set
 
+CI-CD work with NGLM:
+
+SLOMAP1
+SPVPROD
+
 ## FDW Environment Variables ##
 
 The following environment variables are used to configure the FDW:
