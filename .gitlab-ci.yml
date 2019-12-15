@@ -15,16 +15,16 @@ build_prod_image:
 
   script:
     - echo "Test build"
-    - sudo buildah bud --no-cache -t $CI_REGISTRY_IMAGE/$POSTGRES_IMAGE:build .
+    - sudo buildah bud --no-cache -f Dockerfiles/Dockerfile -t $CI_REGISTRY_IMAGE/$POSTGRES_IMAGE:build .
 
   after_script:
     - echo "Test after"
     - sudo podman push $CI_REGISTRY_IMAGE/$POSTGRES_IMAGE:build
     - sudo podman rmi $(sudo podman images | grep '<none>' | awk '{ print $3}')
 
-  except:
-    changes:
-      - .gitlab-ci.yml
+#   except:
+#     changes:
+#       - .gitlab-ci.yml
 
   only:
     - master
