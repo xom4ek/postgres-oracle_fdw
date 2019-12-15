@@ -1,7 +1,7 @@
 stages:
   - build
   - deploy
-  - test
+  - update
 
 build_prod_image:
   stage: build
@@ -21,31 +21,33 @@ build_prod_image:
     - sudo podman push $CI_REGISTRY_IMAGE/$POSTGRES_IMAGE:build
     - sudo podman rmi $(sudo podman images | grep '<none>' | awk '{ print $3}')
 
-#   except:
-#     changes:
-#       - .gitlab-ci.yml
-
   only:
     - master
 
 
-deploy_slomap1_container:
+deploy_oracle_fdw_grafana_container:
   stage: deploy
   when: manual
   environment:
-    name: slomap1-to-grafana
+    name: oracle_fdw_grafana
     url: https://grafana.nglm.rt.ru
   before_script:
     - source source.env
     - sudo podman login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - sudo podman stop $CI_ENVIRONMENT_NAME || echo "Container doesn't started"
-    - sudo podman rm $CI_ENVIRONMENT_NAME || echo "Coniner doesn't exist"
+    - sudo podman stop $CONTAINER_NAME || echo "Container doesn't started"
+    - sudo podman rm $CONTAINER_NAME || echo "Coniner doesn't exist"
     - sudo podman rmi $CI_REGISTRY_IMAGE/$POSTGRES_IMAGE:latest || echo "Image doesn't exist"
     - sudo podman tag $CI_REGISTRY_IMAGE/$POSTGRES_IMAGE:build $CI_REGISTRY_IMAGE/$POSTGRES_IMAGE:latest
     - sudo podman rmi $CI_REGISTRY_IMAGE/$POSTGRES_IMAGE:build
 
   script:
-    - sudo podman run -d --name=$CI_ENVIRONMENT_NAME --pod=$POD_NAME -e POSTGRES_PORT_FOR_ENV=$POSTGRES_PORT_FOR_ENV -e FDW_NAME=$FDW_NAME -e FDW_FOREIGN_SCHEMA=$FDW_FOREIGN_SCHEMA -e FDW_FOREIGN_SERVER=$FDW_FOREIGN_SERVER -e FDW_USER=$FDW_USER -e FDW_PASS=$FDW_PASS -e FDW_SCHEMA=$FDW_SCHEMA  $CI_REGISTRY_IMAGE/$POSTGRES_IMAGE:latest
+    - |
+      sudo podman run -d --name=$CONTAINER_NAME --pod=$POD_NAME \
+      -e POSTGRES_PORT_FOR_ENV=5432 \
+      -e POSTGRES_USER=$POSTGRES_USER \
+      -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
+      -e POSTGRES_DB=$POSTGRES_DB \
+      $CI_REGISTRY_IMAGE/$POSTGRES_IMAGE:latest
 
   except:
     changes:
@@ -54,27 +56,37 @@ deploy_slomap1_container:
   only:
     - master
 
-deploy_spvprod_container:
-  stage: deploy
-  when: manual
+
+update_nglm_oracle:
+  stage: update
   environment:
-    name: spvprod-to-grafana
+    name: slomap1
     url: https://grafana.nglm.rt.ru
   before_script:
     - source source.env
-    - sudo podman login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - sudo podman stop $CI_ENVIRONMENT_NAME || echo "Container doesn't started"
-    - sudo podman rm $CI_ENVIRONMENT_NAME || echo "Coniner doesn't exist"
-    - sudo podman rmi $CI_REGISTRY_IMAGE/$POSTGRES_IMAGE:latest || echo "Image doesn't exist"
-    - sudo podman tag $CI_REGISTRY_IMAGE/$POSTGRES_IMAGE:build $CI_REGISTRY_IMAGE/$POSTGRES_IMAGE:latest
-    - sudo podman rmi $CI_REGISTRY_IMAGE/$POSTGRES_IMAGE:build
+    - envsubst < init-scripts/fdw_oracle_create.sql > test.sql
+    - cat test.sql
+  script:
+    #- sudo podman exec -i $CONTAINER_NAME psql -v ON_ERROR_STOP=1 --username $POSTGRES_USER --no-password --dbname $POSTGRES_DB < 
+    - date
+
+  only:
+    - master
+
+update_ge_oracle:
+  stage: update
+  environment:
+    name: spvprod
+    url: https://grafana.nglm.rt.ru
+  before_script:
+    - source source.env
+    - source $spvprod
+    - envsubst < init-scripts/fdw_oracle_create.sql > test.sql
+    - cat test.sql
 
   script:
-    - sudo podman run -d --name=$CI_ENVIRONMENT_NAME --pod=$POD_NAME -e POSTGRES_PORT_FOR_ENV=$POSTGRES_PORT_FOR_ENV -e FDW_NAME=$FDW_NAME -e FDW_FOREIGN_SCHEMA=$FDW_FOREIGN_SCHEMA -e FDW_FOREIGN_SERVER=$FDW_FOREIGN_SERVER -e FDW_USER=$FDW_USER -e FDW_PASS=$FDW_PASS -e FDW_SCHEMA=$FDW_SCHEMA  $CI_REGISTRY_IMAGE/$POSTGRES_IMAGE:latest
-
-  except:
-    changes:
-      - .gitlab-ci.yml
+    #- sudo podman exec -i $CONTAINER_NAME psql -v ON_ERROR_STOP=1 --username $POSTGRES_USER --no-password --dbname $POSTGRES_DB < 
+    - date
 
   only:
     - master
