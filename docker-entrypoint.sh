@@ -251,6 +251,7 @@ pg_setup_postgres_conf() {
 	local authMethod='md5'
 	cat >> "$PGDATA/postgresql.conf" <<EOF
 listen_addresses = '*'
+port=${POSTGRES_PORT_FOR_ENV}
 # Enable DB logging
 log_statement = 'all'
 log_connections = on
