@@ -86,9 +86,10 @@ test:
     - source source.env
 
   script:
-    - date \
-    -r \
-    2 \
+    - first: |
+        date 
+        -r 2
+    
 
   only:
     - master
