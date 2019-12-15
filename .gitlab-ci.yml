@@ -1,6 +1,7 @@
 stages:
   - build
   - deploy
+  - test
 
 build_prod_image:
   stage: build
@@ -74,6 +75,20 @@ deploy_spvprod_container:
   except:
     changes:
       - .gitlab-ci.yml
+
+  only:
+    - master
+
+test:
+  stage: test
+  when: manual
+  before_script:
+    - source source.env
+
+  script:
+    - date \
+    -r \
+    2 \
 
   only:
     - master
