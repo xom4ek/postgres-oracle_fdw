@@ -1,4 +1,4 @@
-Docker container with oracle_fdw plugin and correct setting NLS_LANG for Russian character set
+Container with oracle_fdw plugin and correct setting NLS_LANG for Russian character set
 
 CI-CD work with NGLM:
 
