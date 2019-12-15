@@ -64,7 +64,7 @@ update_nglm_oracle:
     url: https://grafana.nglm.rt.ru
   before_script:
     - source source.env
-    - envsubst < init-scripts/fdw_oracle_create.sql > test.sql
+    - envsubst < init-scripts/fdw_oracle_create.sql
     - cat test.sql
   script:
     #- sudo podman exec -i $CONTAINER_NAME psql -v ON_ERROR_STOP=1 --username $POSTGRES_USER --no-password --dbname $POSTGRES_DB < 
@@ -81,7 +81,7 @@ update_ge_oracle:
   before_script:
     - source source.env
     - source $spvprod
-    - envsubst < init-scripts/fdw_oracle_create.sql > test.sql
+    - envsubst < init-scripts/fdw_oracle_create.sql
     - cat test.sql
 
   script:
