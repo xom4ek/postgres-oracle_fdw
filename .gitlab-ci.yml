@@ -12,7 +12,6 @@ build_prod_image:
     - sudo podman login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
   script:
-    - echo "Test build"
     - sudo buildah bud --no-cache -f Dockerfiles/Dockerfile -t $CI_REGISTRY_IMAGE/$POSTGRES_IMAGE:build .
 
   after_script:
@@ -28,9 +27,6 @@ build_prod_image:
 deploy_oracle_fdw_grafana_container:
   stage: deploy
   when: manual
-  environment:
-    name: oracle_fdw_grafana
-    url: https://grafana.nglm.rt.ru
   before_script:
     - source source.env
     - sudo podman login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
@@ -65,9 +61,8 @@ update_nglm_oracle:
   before_script:
     - source source.env
     - envsubst < init-scripts/fdw_oracle_create.sql > tmp.sql
-    - echo $(cat tmp.sql)
+    - sudo podman exec -i $CONTAINER_NAME psql -v ON_ERROR_STOP=1 --username $POSTGRES_USER --no-password --dbname $POSTGRES_DB < tmp.sql
   script:
-    #- sudo podman exec -i $CONTAINER_NAME psql -v ON_ERROR_STOP=1 --username $POSTGRES_USER --no-password --dbname $POSTGRES_DB < 
     - date
 
   only:
@@ -82,10 +77,9 @@ update_ge_oracle:
     - source source.env
     - source $spvprod
     - envsubst < init-scripts/fdw_oracle_create.sql > tmp.sql
-    - echo $(cat tmp.sql)
+    - sudo podman exec -i $CONTAINER_NAME psql -v ON_ERROR_STOP=1 --username $POSTGRES_USER --no-password --dbname $POSTGRES_DB < tmp.sql
 
   script:
-    #- sudo podman exec -i $CONTAINER_NAME psql -v ON_ERROR_STOP=1 --username $POSTGRES_USER --no-password --dbname $POSTGRES_DB < 
     - date
 
   only:
