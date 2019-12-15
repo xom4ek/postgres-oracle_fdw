@@ -18,6 +18,7 @@ build_prod_image:
     - sudo buildah bud --no-cache -f Dockerfiles/Dockerfile -t $CI_REGISTRY_IMAGE/$POSTGRES_IMAGE:build .
 
   after_script:
+    - source source.env
     - echo "Test after"
     - sudo podman push $CI_REGISTRY_IMAGE/$POSTGRES_IMAGE:build
     - sudo podman rmi $(sudo podman images | grep '<none>' | awk '{ print $3}')
