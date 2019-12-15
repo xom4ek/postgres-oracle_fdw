@@ -47,7 +47,12 @@ Foreign Data Wrapper environment variables not found.  Set the following variabl
   FDW_USER (Oracle username)
   
 EOF
-  
+  docker_process_sql --dbname=$POSTGRES_DB <<EOF
+	BEGIN;
+	CREATE EXTENSION IF NOT EXISTS oracle_fdw;
+	ALTER FOREIGN DATA WRAPPER oracle_fdw OPTIONS (nls_lang '.AL32UTF8');
+	COMMIT;
+EOF
   fi
 }
 
