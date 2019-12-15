@@ -4,15 +4,23 @@ stages:
 
 build_prod_image:
   stage: build
+  when: manual
+  environment:
+    name: prod
+    url: https://grafana.nglm.rt.ru
 
   before_script:
-    - sudo podman login -u $REGISTRY_USER -p $REGISTRY_PASSWORD $REGISTRY_URL
+    - source source.env
+    - sudo podman login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
   script:
     - echo "Test build"
+    - sudo buildah bud --no-cache -t $CI_REGISTRY_IMAGE/$POSTGRES_IMAGE:build .
 
   after_script:
     - echo "Test after"
+    - sudo podman push $CI_REGISTRY_IMAGE/$POSTGRES_IMAGE:build
+    - sudo podman rmi $(sudo podman images | grep '<none>' | awk '{ print $3}')
 
   except:
     changes:
@@ -22,18 +30,22 @@ build_prod_image:
     - master
 
 
-run_container:
+deploy_prod_container:
   stage: deploy
-
+  environment:
+    name: prod
+    url: https://grafana.nglm.rt.ru
   before_script:
-    - sudo podman login -u $REGISTRY_USER -p $REGISTRY_PASSWORD $REGISTRY_URL
+    - source source.env
+    - sudo podman login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - sudo podman stop $CONTAINER_NAME || echo "Container doesn't started"
     - sudo podman rm $CONTAINER_NAME || echo "Coniner doesn't exist"
-    - sudo podman rmi $IMAGE_NAME:latest || echo "Image doesn't exist"
-    - sudo podman pull $IMAGE_NAME:latest
+    - sudo podman rmi $CI_REGISTRY_IMAGE/$POSTGRES_IMAGE:latest || echo "Image doesn't exist"
+    - sudo podman tag $CI_REGISTRY_IMAGE/$POSTGRES_IMAGE:build $CI_REGISTRY_IMAGE/$POSTGRES_IMAGE:latest
+    - sudo podman rmi $CI_REGISTRY_IMAGE/$POSTGRES_IMAGE:build
 
   script:
-    - sudo podman run -d -v postgres-run:/var/run/postgresql --name=$CONTAINER_NAME --pod=$POD_NAME $IMAGE_NAME:latest
+    - sudo podman run -d --name=$CONTAINER_NAME --pod=$POD_NAME $CI_REGISTRY_IMAGE/$POSTGRES_IMAGE:latest
 
   except:
     changes:

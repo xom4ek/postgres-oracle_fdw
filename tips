@@ -1,0 +1,12 @@
+docker run -it --rm -e POSTGRES_PASSWORD=pguser -e POSTGRES_USER=pguser -e POSTGRES_DB=pgdb --network host \
+-e FDW_NAME=test \
+-e FDW_FOREIGN_SCHEMA=test \
+-e FDW_FOREIGN_SERVER=//localhost:1531/testservicename \
+-e FDW_USER=test \
+-e FDW_PASS=test \
+-e FDW_SCHEMA=test \
+test:oraclefdw
+
+podman run -it --rm --name=postgres-test-12 -p 6666:5432 -e FDW_NAME=test -e FDW_FOREIGN_SCHEMA=test -e FDW_FOREIGN_SERVER=//localhost:1531/testservicename -e FDW_USER=test -e FDW_PASS=test -e FDW_SCHEMA=test registry.gitlab.nglm.rt.ru/containers/postgres-oracle:12
+
+docker run -it --rm --name=postgres-test-12 -p 6666:5432 -e FDW_NAME=test -e FDW_FOREIGN_SCHEMA=test -e FDW_FOREIGN_SERVER=//localhost:1531/testservicename -e FDW_USER=test -e FDW_PASS=test -e FDW_SCHEMA=test registry.gitlab.nglm.rt.ru/containers/postgres-oracle:12
